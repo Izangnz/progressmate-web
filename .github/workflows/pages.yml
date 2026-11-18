@@ -1,0 +1,39 @@
+name: Publicar ProgressMate en Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: Escribe PUBLICAR para iniciar el despliegue autorizado
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    if: github.repository == 'Izangnz/progressmate-web' && github.ref == 'refs/heads/main' && inputs.confirmar == 'PUBLICAR'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: sha256sum --check SHA256SUMS && unzip -q ProgressMate-v0.20.0-candidata.zip -d public
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+      - id: pages
+        uses: actions/deploy-pages@v4
